@@ -55,7 +55,7 @@ internal sealed class ProgressHandlerFactory : IProgressHandlerFactory
 
 		foreach (var stepProgress in stepProgresses)
 			AnsiConsole.MarkupLine(
-				$"  Step name: [orange4]{stepProgress.Name}[/],  [green]{stepProgress.PercentageProgress:F}%[/], State: {GetStatusMarkup(stepProgress.State)}");
+				$"  Step name: [orange4]{stepProgress.StepType}[/],  [green]{stepProgress.PercentageProgress:F}%[/], State: {GetStatusMarkup(stepProgress.State)}");
 	}
 
 	private static string BuildStatisticsMessage(TransferJobStatistics statistics)

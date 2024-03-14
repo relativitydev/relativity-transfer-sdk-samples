@@ -145,7 +145,7 @@ internal sealed class ConsoleLogger : IConsoleLogger
 		AnsiConsole.MarkupLine("  Job's steps:");
 		foreach (var stepProgress in result.ProgressSteps)
 			AnsiConsole.MarkupLine(
-				$"    Step [orange4]{stepProgress.Name}[/]: [green]{stepProgress.PercentageProgress:F}%[/], {GetStatusMarkup(stepProgress.State)}");
+				$"    Step [orange4]{stepProgress.StepType}[/]: [green]{stepProgress.PercentageProgress:F}%[/], {GetStatusMarkup(stepProgress.State)}");
 		AnsiConsole.WriteLine();
 	}
 

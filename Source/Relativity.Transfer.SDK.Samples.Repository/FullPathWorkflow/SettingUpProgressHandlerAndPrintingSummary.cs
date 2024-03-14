@@ -111,7 +111,7 @@ internal class SettingUpProgressHandlerAndPrintingSummary : ISample
         WriteLine(
             string.Join(Environment.NewLine,
                 progressSteps.Select(stepProgress =>
-                    $"    step name: {stepProgress.Name}, {stepProgress.PercentageProgress:F}%, state: {stepProgress.State}")),
+                    $"    step name: {stepProgress.StepType}, {stepProgress.PercentageProgress:F}%, state: {stepProgress.State}")),
             ConsoleColor.Cyan);
     }
 
