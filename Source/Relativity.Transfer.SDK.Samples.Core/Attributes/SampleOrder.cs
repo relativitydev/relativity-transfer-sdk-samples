@@ -7,6 +7,7 @@ internal enum SampleOrder
     UploadFile,
     UploadItems,
     UploadDirectory,
+    CloudUpload,
     UploadDirectoryWithCustomizedRetryPolicy,
     UploadDirectoryWithExclusionPolicy,
     DownloadFile,

@@ -6,6 +6,7 @@ internal enum TransferType
 	UploadDirectory,
 	UploadFile,
 	UploadItems,
+	CloudUpload,
 	DownloadDirectory,
 	DownloadFile,
 	UploadDirectoryByWorkspaceId,

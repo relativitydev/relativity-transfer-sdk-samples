@@ -11,12 +11,6 @@ using Relativity.Transfer.SDK.Samples.Core.ProgressHandler;
 using Relativity.Transfer.SDK.Samples.Core.Runner;
 using Relativity.Transfer.SDK.Samples.Core.Services;
 using Relativity.Transfer.SDK.Samples.Core.UI;
-using Relativity.Transfer.SDK.Samples.Repository.FullPathWorkflow;
-using Relativity.Transfer.SDK.Samples.Repository.JobBasedWorkflow;
-using FullPathWorkflowUploadDirectory = Relativity.Transfer.SDK.Samples.Repository.FullPathWorkflow.UploadDirectory;
-using FullPathWorkflowDownloadDirectory = Relativity.Transfer.SDK.Samples.Repository.FullPathWorkflow.DownloadDirectory;
-using JobBasedWorkflowUploadDirectory = Relativity.Transfer.SDK.Samples.Repository.JobBasedWorkflow.UploadDirectory;
-using JobBasedWorkflowDownloadDirectory = Relativity.Transfer.SDK.Samples.Repository.JobBasedWorkflow.DownloadDirectory;
 
 namespace Relativity.Transfer.SDK.Samples.CLI;
 
