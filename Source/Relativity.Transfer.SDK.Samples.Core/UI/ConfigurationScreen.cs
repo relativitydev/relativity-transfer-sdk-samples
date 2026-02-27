@@ -34,7 +34,8 @@ internal sealed class ConfigurationScreen : IConfigurationScreen
 		SampleAttribute sampleAttribute)
 	{
 		PrintTitle("Sample configuration (press enter to use default value)");
-		var newCommon = AskForCommonParameters(configuration);
+
+		var newCommon = sampleAttribute.TransferType == TransferType.CloudUpload ? AskForCloudUploadParameters(configuration) : AskForCommonParameters(configuration);
 
 		return AskForTransferTypeSpecificParameters(configuration, sampleAttribute, newCommon);
 	}
@@ -53,6 +54,12 @@ internal sealed class ConfigurationScreen : IConfigurationScreen
 
 				return Configuration.Configuration.ForUploadDirectory(common,
 					new SourceAndDestinationConfiguration(source, destination));
+			
+			case TransferType.CloudUpload:
+				source = AnsiConsole.Ask("Source SasURL", configuration.CloudUpload.Source);
+				destination = AnsiConsole.Ask("Destination directory", GetDefaultUploadDirectoryDestination(common, configuration.CloudUpload.Destination));
+				
+				return Configuration.Configuration.ForCloudUpload(common, new SourceAndDestinationConfiguration(source, destination));
 
 			case TransferType.UploadFile:
 				source = AnsiConsole.Ask("Source file", configuration.UploadFile.Source); 
@@ -171,6 +178,22 @@ internal sealed class ConfigurationScreen : IConfigurationScreen
 
 		return new CommonConfiguration(configuration.Common.ClientName, instanceUrl, fileShareRoot,
 			fileShareRelativePath, new OAuthCredentials(clientId, clientSecret))
+		{
+			JobId = jobId
+		};
+	}
+	
+	private static CommonConfiguration AskForCloudUploadParameters(Configuration.Configuration configuration)
+	{
+		AnsiConsole.MarkupLine($"Client name [green]({configuration.Common.ClientName})[/]");
+		var jobId = Guid.NewGuid();
+		AnsiConsole.MarkupLine($"Job ID [green]({jobId})[/]");
+		var instanceUrl = AnsiConsole.Ask("Instance URL", configuration.Common.InstanceUrl);
+		var clientId = AnsiConsole.Ask("Client secret ID", configuration.Common.OAuthCredentials.ClientId);
+		var clientSecret = AnsiConsole.Ask("Client secret", configuration.Common.OAuthCredentials.ClientSecret);
+
+		return new CommonConfiguration(configuration.Common.ClientName, instanceUrl, string.Empty,
+			string.Empty, new OAuthCredentials(clientId, clientSecret))
 		{
 			JobId = jobId
 		};

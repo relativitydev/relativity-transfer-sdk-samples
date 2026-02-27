@@ -42,6 +42,18 @@ internal sealed class ConsoleLogger : IConsoleLogger
 		AnsiConsole.WriteLine();
 	}
 
+	public void PrintCreatingTransfer(Guid jobId, CloudLocation source, PathBase destination, params string[] additionalLines)
+	{
+		AnsiConsole.WriteLine();
+		AnsiConsole.MarkupLine($"Creating transfer [green]{jobId}[/]:");
+		if (source != null) AnsiConsole.MarkupLine($"\tFrom: [purple3]{source}[/]");
+		if (destination != null) AnsiConsole.MarkupLine($"\tTo: [orange4]{destination}[/]");
+
+		AddAdditionalLinesIfRequired(additionalLines);
+
+		AnsiConsole.WriteLine();
+	}
+
 	public void PrintTransferResult(TransferJobResult result, string headerLine = "Transfer has finished:",
 		bool waitForKeyHit = true)
 	{
