@@ -12,6 +12,7 @@ internal interface IConsoleLogger
 {
 	Task PrintExitMessageAsync();
 	void PrintCreatingTransfer(Guid jobId, PathBase source, PathBase destination, params string[] additionalLines);
+	void PrintCreatingTransfer(Guid jobId, CloudLocation source, PathBase destination, params string[] additionalLines);
 	void PrintTransferResult(TransferJobResult result, string headerLine = "Transfer has finished:", bool waitForKeyHit = true);
 	void Info(string msg);
 	void PrintError(Exception exception);
