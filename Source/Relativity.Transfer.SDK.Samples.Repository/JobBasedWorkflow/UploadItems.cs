@@ -4,6 +4,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Relativity.Transfer.SDK.Interfaces.Authentication;
+using Relativity.Transfer.SDK.Interfaces.Options;
 using Relativity.Transfer.SDK.Interfaces.Paths;
 using Relativity.Transfer.SDK.Samples.Core.Attributes;
 using Relativity.Transfer.SDK.Samples.Core.Authentication;
@@ -43,6 +44,13 @@ internal class UploadItems : ISample
             ? _pathExtension.GetDefaultRemoteDirectoryPathForUpload(configuration.Common)
             : new DirectoryPath(configuration.UploadFile.Destination);
         var authenticationProvider = _relativityAuthenticationProviderFactory.Create(configuration.Common);
+        // This is transfer options object which is not necessary if you do not need change default parameters.
+        var uploadListOfItemsOptions = new UploadListOfItemsOptions()
+        {
+            MaximumSpeed = default,
+            OverwritePolicy = default,
+            // ...
+        };
         var progressHandler = _progressHandlerFactory.Create();
         
         await RegisterUploadDirectoryJobAsync(authenticationProvider, jobId, destination).ConfigureAwait(false);
@@ -62,7 +70,9 @@ internal class UploadItems : ISample
         {
             var sources = GetTransferredEntities(configuration.UploadFile.Source);
             var result = await transferClient
-                .UploadItemsAsync(jobId, sources, progressHandler, token)
+                .UploadItemsAsync(jobId, sources, uploadListOfItemsOptions, progressHandler, token)
+                // If you do not need pass transfer options you can invoke this method like this:
+                //.UploadItemsAsync(jobId, sources, progressHandler, token)
                 .ConfigureAwait(false);
             
             _consoleLogger.PrintTransferResult(result);

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Relativity.Transfer.SDK.Interfaces.Options;
 using Relativity.Transfer.SDK.Interfaces.Paths;
 using Relativity.Transfer.SDK.Samples.Core.Attributes;
 using Relativity.Transfer.SDK.Samples.Core.Authentication;
@@ -47,7 +48,14 @@ internal class UploadDirectoryBasedOnExistingJob : ISample
 		var secondSource = new DirectoryPath(configuration.UploadDirectoryBasedOnExistingJob.SecondSource);
 		var authenticationProvider = _relativityAuthenticationProviderFactory.Create(configuration.Common);
 		var jobBuilder = new TransferJobBuilder(authenticationProvider);
-		var progressHandler = _progressHandlerFactory.Create();
+        // This is transfer options object which is not necessary if you do not need change default parameters.
+        var firstUploadDirectoryOptions = new UploadDirectoryOptions()
+        {
+            MaximumSpeed = default,
+            OverwritePolicy = default,
+            // ...
+        };
+        var progressHandler = _progressHandlerFactory.Create();
 
 		await RegisterUploadDirectoryJobAsync(jobBuilder, firstJobId, destination).ConfigureAwait(false);
 
@@ -63,16 +71,28 @@ internal class UploadDirectoryBasedOnExistingJob : ISample
 		_consoleLogger.PrintCreatingTransfer(firstJobId, firstSource, destination);
 
 		var firstResult = await transferClient
-			.UploadDirectoryAsync(firstJobId, firstSource, progressHandler, token)
-			.ConfigureAwait(false);
+			.UploadDirectoryAsync(firstJobId, firstSource, firstUploadDirectoryOptions, progressHandler, token)
+            // If you do not need pass transfer options you can invoke this method like this:
+            //.UploadDirectoryAsync(firstJobId, firstSource, progressHandler, token)
+            .ConfigureAwait(false);
 
 		_consoleLogger.PrintTransferResult(firstResult, "First transfer has finished:", false);
 
 		await RegisterUploadJobFromExistingJobAsync(jobBuilder, secondJobId, firstJobId).ConfigureAwait(false);
 
+        // This is transfer options object which is not necessary if you do not need change default parameters.
+        var secondUploadDirectoryOptions = new UploadDirectoryOptions()
+        {
+            MaximumSpeed = default,
+            OverwritePolicy = default,
+            // ...
+        };
+        
 		var secondResult = await transferClient
-			.UploadDirectoryAsync(secondJobId, secondSource, progressHandler, token)
-			.ConfigureAwait(false);
+			.UploadDirectoryAsync(secondJobId, secondSource, secondUploadDirectoryOptions, progressHandler, token)
+            // If you do not need pass transfer options you can invoke this method like this:
+            //.UploadDirectoryAsync(secondJobId, secondSource, progressHandler, token)
+            .ConfigureAwait(false);
 
 		_consoleLogger.PrintTransferResult(secondResult, "Second transfer has finished:");
 	}
