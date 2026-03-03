@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using ByteSizeLib;
 using Relativity.Transfer.SDK.Core.ProgressReporting;
+using Relativity.Transfer.SDK.Interfaces.Options;
 using Relativity.Transfer.SDK.Interfaces.Paths;
 using Relativity.Transfer.SDK.Interfaces.ProgressReporting;
 using Relativity.Transfer.SDK.Samples.Core.Attributes;
@@ -48,6 +49,13 @@ internal class SettingUpProgressHandlerAndPrintingSummary : ISample
         var destination = string.IsNullOrWhiteSpace(configuration.UploadDirectory.Destination)
             ? _pathExtension.GetDefaultRemoteDirectoryPathForUpload(configuration.Common)
             : new DirectoryPath(configuration.UploadDirectory.Destination);
+        // This is transfer options object which is not necessary if you do not need change default parameters.
+        var uploadDirectoryOptions = new UploadDirectoryOptions()
+        {
+            MaximumSpeed = default,
+            OverwritePolicy = default,
+            // ...
+        };
         var authenticationProvider = _relativityAuthenticationProviderFactory.Create(configuration.Common);
 
         // The builder follows the Fluent convention, and more options will be added in the future. The only required component (besides the client name)
@@ -61,7 +69,9 @@ internal class SettingUpProgressHandlerAndPrintingSummary : ISample
         _consoleLogger.PrintCreatingTransfer(jobId, source, destination, additionalLine);
 
         var result = await transferClient
-            .UploadDirectoryAsync(jobId, source, destination, GetProgressHandler(), default)
+            .UploadDirectoryAsync(jobId, source, destination, uploadDirectoryOptions, GetProgressHandler(), default)
+            // If you do not need pass transfer options you can invoke this method like this:
+            //.UploadDirectoryAsync(jobId, source, destination, GetProgressHandler(), default)
             .ConfigureAwait(false);
 
         PrintTransferSummary(result);

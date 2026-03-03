@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using Relativity.Transfer.SDK.Interfaces.Options;
 using Relativity.Transfer.SDK.Interfaces.Paths;
 using Relativity.Transfer.SDK.Samples.Core.Attributes;
 using Relativity.Transfer.SDK.Samples.Core.Authentication;
@@ -53,6 +54,13 @@ internal class UploadToFileSharePathBasedOnWorkspaceId : ISample
         var jobId = configuration.Common.JobId;
         var source = new DirectoryPath(configuration.UploadDirectoryByWorkspaceId.Source);
         var authenticationProvider = _relativityAuthenticationProviderFactory.Create(configuration.Common);
+        // This is transfer options object which is not necessary if you do not need change default parameters.
+        var uploadDirectoryOptions = new UploadDirectoryOptions()
+        {
+            MaximumSpeed = default,
+            OverwritePolicy = default,
+            // ...
+        };
         var progressHandler = _progressHandlerFactory.Create();
 
         // Get list of file shares by workspace ID. The association is based on Resource Pool assigned to the workspace.
@@ -76,7 +84,9 @@ internal class UploadToFileSharePathBasedOnWorkspaceId : ISample
         _consoleLogger.PrintCreatingTransfer(jobId, source, destination);
 
         var result = await transferClient
-            .UploadDirectoryAsync(jobId, source, destination, progressHandler, token)
+            .UploadDirectoryAsync(jobId, source, destination, uploadDirectoryOptions, progressHandler, token)
+            // If you do not need pass transfer options you can invoke this method like this:
+            //.UploadDirectoryAsync(jobId, source, destination, progressHandler, token)
             .ConfigureAwait(false);
 
         _consoleLogger.PrintTransferResult(result);

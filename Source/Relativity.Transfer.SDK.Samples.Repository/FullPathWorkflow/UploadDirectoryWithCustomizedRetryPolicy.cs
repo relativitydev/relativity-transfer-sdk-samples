@@ -65,6 +65,8 @@ internal class UploadDirectoryWithCustomizedRetryPolicy : ISample
 
         var result = await transferClient
             .UploadDirectoryAsync(jobId, source, destination, exponentialRetryPolicyOptions, progressHandler, token)
+            // If you do not need pass transfer options you can invoke this method like this:
+            //.UploadDirectoryAsync(jobId, source, destination, progressHandler, token)
             .ConfigureAwait(false);
 
         _consoleLogger.PrintTransferResult(result);
