@@ -15,6 +15,7 @@ This project showcases a straightforward integration scenario with `Relativity.T
 - Get a detailed transfer report
 - Setup one of three predefined retry policies - No Retry, Linear, Exponential 
 - Assign an exclusion policy to filter out unwanted files
+- Limit the number of concurrent HTTP connections used by a transfer
 
 The library supports `.NETStandard 2.0`, which means it is cross-platform. You can run it on Windows, Mac or Linux!
 
@@ -66,6 +67,7 @@ The repository contains 3 projects:
 | UploadDirectory                            | UploadDirectory                     | [UploadDirectory](https://github.com/relativitydev/relativity-transfer-sdk-samples/blob/main/Source/Relativity.Transfer.SDK.Samples.Repository/FullPathWorkflow/UploadDirectory.cs)                                                       |
 | UploadDirectoryWithCustomizedRetryPolicy   | UploadDirectory                     | [UploadDirectoryWithCustomizedRetryPolicy](https://github.com/relativitydev/relativity-transfer-sdk-samples/blob/main/Source/Relativity.Transfer.SDK.Samples.Repository/FullPathWorkflow/UploadDirectoryWithCustomizedRetryPolicy.cs)     |
 | UploadDirectoryWithExclusionPolicy         | UploadDirectory                     | [UploadDirectoryWithExclusionPolicy](https://github.com/relativitydev/relativity-transfer-sdk-samples/blob/main/Source/Relativity.Transfer.SDK.Samples.Repository/FullPathWorkflow/UploadDirectoryWithExclusionPolicy.cs)                 |
+| UploadDirectoryWithMaxHttpConnections      | UploadDirectory                     | [UploadDirectoryWithMaxHttpConnections](https://github.com/relativitydev/relativity-transfer-sdk-samples/blob/main/Source/Relativity.Transfer.SDK.Samples.Repository/FullPathWorkflow/UploadDirectoryWithMaxHttpConnections.cs)           |
 | CloudUpload                                | CloudUpload                         | [CloudUpload](https://github.com/relativitydev/relativity-transfer-sdk-samples/blob/main/Source/Relativity.Transfer.SDK.Samples.Repository/FullPathWorkflow/CloudUpload.cs)                                                               |
 | UploadFile                                 | UploadFile                          | [UploadFile](https://github.com/relativitydev/relativity-transfer-sdk-samples/blob/main/Source/Relativity.Transfer.SDK.Samples.Repository/FullPathWorkflow/UploadFile.cs)                                                                 |
 | UploadItems                                | UploadFile                          | [UploadItems](https://github.com/relativitydev/relativity-transfer-sdk-samples/blob/main/Source/Relativity.Transfer.SDK.Samples.Repository/FullPathWorkflow/UploadItems.cs)                                                               |

@@ -10,6 +10,7 @@ internal enum SampleOrder
     CloudUpload,
     UploadDirectoryWithCustomizedRetryPolicy,
     UploadDirectoryWithExclusionPolicy,
+    UploadDirectoryWithMaxHttpConnections,
     DownloadFile,
     DownloadDirectory,
     UploadToFileSharePathBasedOnWorkspaceId,
