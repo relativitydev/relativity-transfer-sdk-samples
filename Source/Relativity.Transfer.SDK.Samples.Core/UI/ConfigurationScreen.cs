@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Relativity.Transfer.SDK.Samples.Core.Attributes;
 using Relativity.Transfer.SDK.Samples.Core.Authentication.Credentials;
 using Relativity.Transfer.SDK.Samples.Core.Configuration;
@@ -45,7 +45,7 @@ internal sealed class ConfigurationScreen : IConfigurationScreen
 		SampleAttribute sampleAttribute, CommonConfiguration common)
 	{
 		string source, destination;
-		var r1ToR1 = configuration.R1ToR1;
+		var aiRToAiR = configuration.AiRToAiR;
 		switch (sampleAttribute.TransferType)
 		{
 			case TransferType.UploadDirectory:
@@ -144,19 +144,19 @@ internal sealed class ConfigurationScreen : IConfigurationScreen
 				return Configuration.Configuration.ForDownloadDirectoryBasedOnExistingJob(common,
 					new SourceAndTwoDestinationsConfiguration(source, firstDestination, secondDestination));
 
-			case TransferType.R1ToR1EndToEnd:
+			case TransferType.AiRToAiREndToEnd:
 				// The instance configured above is the source (Sender) instance; the destination (Receiver) instance is asked for here.
 				source = AnsiConsole.Ask("Source directory (on the source instance)",
-					GetDefaultR1ToR1Directory(common, r1ToR1.Source));
-				var destinationInstanceUrl = AnsiConsole.Ask("Destination instance URL", r1ToR1.DestinationInstanceUrl);
+					GetDefaultAiRToAiRDirectory(common, aiRToAiR.Source));
+				var destinationInstanceUrl = AnsiConsole.Ask("Destination instance URL", aiRToAiR.DestinationInstanceUrl);
 				var destinationClientId = AnsiConsole.Ask("Destination client secret ID",
-					r1ToR1.DestinationOAuthCredentials?.ClientId ?? string.Empty);
+					aiRToAiR.DestinationOAuthCredentials?.ClientId ?? string.Empty);
 				var destinationClientSecret = AnsiConsole.Ask("Destination client secret",
-					r1ToR1.DestinationOAuthCredentials?.ClientSecret ?? string.Empty);
+					aiRToAiR.DestinationOAuthCredentials?.ClientSecret ?? string.Empty);
 				destination = AnsiConsole.Ask("Destination directory (on the destination instance, must already exist)",
-					r1ToR1.Destination);
+					aiRToAiR.Destination);
 
-				return Configuration.Configuration.ForR1ToR1(common, r1ToR1 with
+				return Configuration.Configuration.ForAiRToAiR(common, aiRToAiR with
 				{
 					Source = source,
 					Destination = destination,
@@ -168,7 +168,7 @@ internal sealed class ConfigurationScreen : IConfigurationScreen
 		}
 	}
 
-	private string GetDefaultR1ToR1Directory(CommonConfiguration common, string defaultValue)
+	private string GetDefaultAiRToAiRDirectory(CommonConfiguration common, string defaultValue)
 	{
 		return string.IsNullOrWhiteSpace(defaultValue)
 			? _pathExtension.GetDefaultRemoteDirectoryPathForDownloadAsString(common)

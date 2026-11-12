@@ -16,7 +16,7 @@ This project showcases a straightforward integration scenario with `Relativity.T
 - Setup one of three predefined retry policies - No Retry, Linear, Exponential 
 - Assign an exclusion policy to filter out unwanted files
 - Limit the number of concurrent HTTP connections used by a transfer
-- Transfer a directory between two RelativityOne instances (R1-to-R1) and manage the reference tokens used to authorize it
+- Transfer a directory between two RelativityOne instances (aiR-to-aiR) and manage the reference tokens used to authorize it
 
 The library supports `.NETStandard 2.0`, which means it is cross-platform. You can run it on Windows, Mac or Linux!
 
@@ -38,10 +38,10 @@ Within each tenant or client domain storage area, the Staging Area consists of t
 
 More details can be found in the Staging Governance documentation [here](https://help.relativity.com/RelativityOne/Content/Relativity/Staging_Area.htm).
 
-## R1-to-R1 transfers <a name = "r1_to_r1"></a>
+## aiR-to-aiR transfers <a name = "air_to_air"></a>
 
-R1-to-R1 transfers copy a directory from one RelativityOne instance (Sender, source) to another (Receiver, destination). The data is copied server-side, no customer machine is involved.
-The [R1ToR1EndToEnd](https://github.com/relativitydev/relativity-transfer-sdk-samples/blob/main/Source/Relativity.Transfer.SDK.Samples.Repository/FullPathWorkflow/R1ToR1EndToEnd.cs) sample plays both roles in a single process (so it needs credentials to both instances) and its comments mark which party runs each step.
+aiR-to-aiR transfers copy a directory from one RelativityOne instance (Sender, source) to another (Receiver, destination). The data is copied server-side, no customer machine is involved.
+The [AiRToAiREndToEnd](https://github.com/relativitydev/relativity-transfer-sdk-samples/blob/main/Source/Relativity.Transfer.SDK.Samples.Repository/FullPathWorkflow/AiRToAiREndToEnd.cs) sample plays both roles in a single process (so it needs credentials to both instances) and its comments mark which party runs each step.
 It follows the [documented workflow](https://platform.relativity.com/RelativityaiR/Content/Transfer_API/Relativity_aiR-to-Relativity_aiR_transfers.htm#workflow):
 
 1. The Receiver creates a reference token for an existing destination directory - `TransferClientBuilder.ReferenceTokenWorkflow` (`IReferenceTokenClient.CreateAsync`).
@@ -105,7 +105,7 @@ The repository contains 3 projects:
 | UploadDirectoryWithExclusionPolicy         | UploadDirectory                     | [UploadDirectoryWithExclusionPolicy](https://github.com/relativitydev/relativity-transfer-sdk-samples/blob/main/Source/Relativity.Transfer.SDK.Samples.Repository/FullPathWorkflow/UploadDirectoryWithExclusionPolicy.cs)                 |
 | UploadDirectoryWithMaxHttpConnections      | UploadDirectory                     | [UploadDirectoryWithMaxHttpConnections](https://github.com/relativitydev/relativity-transfer-sdk-samples/blob/main/Source/Relativity.Transfer.SDK.Samples.Repository/FullPathWorkflow/UploadDirectoryWithMaxHttpConnections.cs)           |
 | CloudUpload                                | CloudUpload                         | [CloudUpload](https://github.com/relativitydev/relativity-transfer-sdk-samples/blob/main/Source/Relativity.Transfer.SDK.Samples.Repository/FullPathWorkflow/CloudUpload.cs)                                                               |
-| R1ToR1EndToEnd                             | R1ToR1                              | [R1ToR1EndToEnd](https://github.com/relativitydev/relativity-transfer-sdk-samples/blob/main/Source/Relativity.Transfer.SDK.Samples.Repository/FullPathWorkflow/R1ToR1EndToEnd.cs)                                                         |
+| AiRToAiREndToEnd                           | AiRToAiR                            | [AiRToAiREndToEnd](https://github.com/relativitydev/relativity-transfer-sdk-samples/blob/main/Source/Relativity.Transfer.SDK.Samples.Repository/FullPathWorkflow/AiRToAiREndToEnd.cs)                                                         |
 | UploadFile                                 | UploadFile                          | [UploadFile](https://github.com/relativitydev/relativity-transfer-sdk-samples/blob/main/Source/Relativity.Transfer.SDK.Samples.Repository/FullPathWorkflow/UploadFile.cs)                                                                 |
 | UploadItems                                | UploadFile                          | [UploadItems](https://github.com/relativitydev/relativity-transfer-sdk-samples/blob/main/Source/Relativity.Transfer.SDK.Samples.Repository/FullPathWorkflow/UploadItems.cs)                                                               |
 | UploadToFilesharePathBasedOnWorkspaceId    | UploadDirectoryByWorkspaceId        | [UploadToFilesharePathBasedOnWorkspaceId](https://github.com/relativitydev/relativity-transfer-sdk-samples/blob/main/Source/Relativity.Transfer.SDK.Samples.Repository/FullPathWorkflow/UploadToFileSharePathBasedOnWorkspaceId.cs)       |

@@ -14,7 +14,7 @@ using Spectre.Console;
 
 namespace Relativity.Transfer.SDK.Samples.Repository.FullPathWorkflow;
 
-// R1-to-R1 (RelativityOne-to-RelativityOne) transfer copies a directory from one RelativityOne instance to another.
+// aiR-to-aiR (Relativity aiR-to-Relativity aiR) transfer copies a directory from one RelativityOne instance to another.
 // The data is copied server-side, no customer machine is involved.
 //
 // There are two parties, each working ONLY with its own instance and its own OAuth2 client:
@@ -23,19 +23,19 @@ namespace Relativity.Transfer.SDK.Samples.Repository.FullPathWorkflow;
 //
 // This sample plays both roles in a single process, so it needs credentials to both instances.
 // Workflow: https://platform.relativity.com/RelativityaiR/Content/Transfer_API/Relativity_aiR-to-Relativity_aiR_transfers.htm#workflow
-[Sample(SampleOrder.R1ToR1EndToEnd,
-	"R1-to-R1 transfer (end-to-end)",
-	"The sample walks step by step through the whole R1-to-R1 workflow: the Receiver creates a reference token on the destination instance, " +
+[Sample(SampleOrder.AiRToAiREndToEnd,
+	"aiR-to-aiR transfer (end-to-end)",
+	"The sample walks step by step through the whole aiR-to-aiR workflow: the Receiver creates a reference token on the destination instance, " +
 	"the Sender validates it and transfers a directory from the source instance, and the Receiver revokes the token if the transfer failed or was cancelled.",
-	typeof(R1ToR1EndToEnd),
-	TransferType.R1ToR1EndToEnd)]
-internal class R1ToR1EndToEnd : ISample
+	typeof(AiRToAiREndToEnd),
+	TransferType.AiRToAiREndToEnd)]
+internal class AiRToAiREndToEnd : ISample
 {
 	private readonly IConsoleLogger _consoleLogger;
 	private readonly IRelativityAuthenticationProviderFactory _relativityAuthenticationProviderFactory;
 	private readonly IProgressHandlerFactory _progressHandlerFactory;
 
-	public R1ToR1EndToEnd(IConsoleLogger consoleLogger,
+	public AiRToAiREndToEnd(IConsoleLogger consoleLogger,
 		IRelativityAuthenticationProviderFactory relativityAuthenticationProviderFactory,
 		IProgressHandlerFactory progressHandlerFactory)
 	{
@@ -48,18 +48,18 @@ internal class R1ToR1EndToEnd : ISample
 	{
 		var clientName = configuration.Common.ClientName;
 		var jobId = configuration.Common.JobId;
-		var r1ToR1 = configuration.R1ToR1;
-		var source = new DirectoryPath(r1ToR1.Source);
+		var aiRToAiR = configuration.AiRToAiR;
+		var source = new DirectoryPath(aiRToAiR.Source);
 
 		// =============================================================================================
 		// RECEIVER (destination instance) - setup.
-		// The Receiver authenticates against the DESTINATION instance (R1ToR1 section of the configuration).
+		// The Receiver authenticates against the DESTINATION instance (AiRToAiR section of the configuration).
 		// Reference tokens are managed by a dedicated client built with TransferClientBuilder.ReferenceTokenWorkflow.
 		// =============================================================================================
 		var destinationAuthenticationProvider = _relativityAuthenticationProviderFactory.Create(configuration.Common with
 		{
-			InstanceUrl = r1ToR1.DestinationInstanceUrl,
-			OAuthCredentials = r1ToR1.DestinationOAuthCredentials
+			InstanceUrl = aiRToAiR.DestinationInstanceUrl,
+			OAuthCredentials = aiRToAiR.DestinationOAuthCredentials
 		});
 		var receiverTokenClient = TransferClientBuilder.ReferenceTokenWorkflow
 			.WithAuthentication(destinationAuthenticationProvider)
@@ -77,7 +77,7 @@ internal class R1ToR1EndToEnd : ISample
 		// The directory must be in a staging area and must already exist. The token wraps a SAS token valid for 7 days,
 		// the SAS token itself is never exposed to either party.
 		// ---------------------------------------------------------------------------------------------
-		var referenceToken = await receiverTokenClient.CreateAsync(r1ToR1.Destination, token).ConfigureAwait(false);
+		var referenceToken = await receiverTokenClient.CreateAsync(aiRToAiR.Destination, token).ConfigureAwait(false);
 
 		// ---------------------------------------------------------------------------------------------
 		// Step 2 - RECEIVER -> SENDER: share the token through a secure out-of-band channel.
@@ -99,7 +99,8 @@ internal class R1ToR1EndToEnd : ISample
 		// Step 4 - SENDER (source instance): create the transfer job and monitor it.
 		// The documented REST workflow has two calls here (POST jobs + polling GET jobs/{id}). The SDK handles both in a single call:
 		// it creates the job and polls its status until it finishes, reporting progress through the progress handler.
-		// R1-to-R1 transfer uses the same full path client as the other transfers.
+		// aiR-to-aiR transfer uses the same full path client as the other transfers
+		// (the SDK API still uses the former R1-to-R1 name: R1ToR1TransferAsync, R1ToR1TransferOptions).
 		// ---------------------------------------------------------------------------------------------
 		var transferClient = TransferClientBuilder.FullPathWorkflow
 			.WithAuthentication(sourceAuthenticationProvider)
@@ -108,7 +109,7 @@ internal class R1ToR1EndToEnd : ISample
 			.Build();
 
 		_consoleLogger.PrintCreatingTransfer(jobId, source, null,
-			$"\tTo: [orange4]{Markup.Escape(r1ToR1.Destination)}[/] (encoded in the reference token)");
+			$"\tTo: [orange4]{Markup.Escape(aiRToAiR.Destination)}[/] (encoded in the reference token)");
 
 		var options = new R1ToR1TransferOptions
 		{
