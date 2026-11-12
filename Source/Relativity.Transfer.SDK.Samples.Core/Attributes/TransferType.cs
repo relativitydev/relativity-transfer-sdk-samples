@@ -1,4 +1,4 @@
-﻿namespace Relativity.Transfer.SDK.Samples.Core.Attributes;
+namespace Relativity.Transfer.SDK.Samples.Core.Attributes;
 
 internal enum TransferType
 {
@@ -11,5 +11,6 @@ internal enum TransferType
 	DownloadFile,
 	UploadDirectoryByWorkspaceId,
 	UploadDirectoryBasedOnExistingJob,
-	DownloadDirectoryBasedOnExistingJob
+	DownloadDirectoryBasedOnExistingJob,
+	AiRToAiREndToEnd
 }
