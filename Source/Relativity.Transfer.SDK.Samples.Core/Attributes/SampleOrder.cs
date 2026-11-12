@@ -8,6 +8,7 @@ internal enum SampleOrder
     UploadItems,
     UploadDirectory,
     CloudUpload,
+    R1ToR1EndToEnd,
     UploadDirectoryWithCustomizedRetryPolicy,
     UploadDirectoryWithExclusionPolicy,
     UploadDirectoryWithMaxHttpConnections,

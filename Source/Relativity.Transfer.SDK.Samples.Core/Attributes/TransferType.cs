@@ -11,5 +11,6 @@ internal enum TransferType
 	DownloadFile,
 	UploadDirectoryByWorkspaceId,
 	UploadDirectoryBasedOnExistingJob,
-	DownloadDirectoryBasedOnExistingJob
+	DownloadDirectoryBasedOnExistingJob,
+	R1ToR1EndToEnd
 }

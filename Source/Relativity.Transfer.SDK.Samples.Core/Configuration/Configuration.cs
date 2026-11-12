@@ -11,7 +11,8 @@ internal record Configuration(
 	SourceAndDestinationConfiguration DownloadDirectory,
 	SourceAndWorkspaceIdConfiguration UploadDirectoryByWorkspaceId,
 	TwoSourcesAndDestinationConfiguration UploadDirectoryBasedOnExistingJob,
-	SourceAndTwoDestinationsConfiguration DownloadDirectoryBasedOnExistingJob)
+	SourceAndTwoDestinationsConfiguration DownloadDirectoryBasedOnExistingJob,
+	R1ToR1Configuration R1ToR1)
 {
 	public void Deconstruct(out CommonConfiguration common, out SourceAndDestinationConfiguration uploadFile,
 		out SourceAndDestinationConfiguration uploadDirectory, out SourceAndDestinationConfiguration cloudUpload, 
@@ -19,7 +20,8 @@ internal record Configuration(
 		out SourceAndDestinationConfiguration downloadDirectory,
 		out SourceAndWorkspaceIdConfiguration uploadDirectoryByWorkspaceId,
 		out TwoSourcesAndDestinationConfiguration uploadDirectoryBasedOnExistingJob,
-		out SourceAndTwoDestinationsConfiguration downloadDirectoryBasedOnExistingJob)
+		out SourceAndTwoDestinationsConfiguration downloadDirectoryBasedOnExistingJob,
+		out R1ToR1Configuration r1ToR1)
 	{
 		common = Common;
 		uploadFile = UploadFile;
@@ -30,6 +32,7 @@ internal record Configuration(
 		uploadDirectoryByWorkspaceId = UploadDirectoryByWorkspaceId;
 		uploadDirectoryBasedOnExistingJob = UploadDirectoryBasedOnExistingJob;
 		downloadDirectoryBasedOnExistingJob = DownloadDirectoryBasedOnExistingJob;
+		r1ToR1 = R1ToR1;
 	}
 
 	internal static Configuration ForUploadDirectory(CommonConfiguration common,
@@ -43,7 +46,8 @@ internal record Configuration(
 			new SourceAndDestinationConfiguration(string.Empty, string.Empty),
 			new SourceAndWorkspaceIdConfiguration(string.Empty, -1),
 			new TwoSourcesAndDestinationConfiguration(string.Empty, string.Empty, string.Empty),
-			new SourceAndTwoDestinationsConfiguration(string.Empty, string.Empty, string.Empty));
+			new SourceAndTwoDestinationsConfiguration(string.Empty, string.Empty, string.Empty),
+			R1ToR1Configuration.Empty);
 	}
 	
 	internal static Configuration ForCloudUpload(CommonConfiguration common,
@@ -57,7 +61,22 @@ internal record Configuration(
 			new SourceAndDestinationConfiguration(string.Empty, string.Empty),
 			new SourceAndWorkspaceIdConfiguration(string.Empty, -1),
 			new TwoSourcesAndDestinationConfiguration(string.Empty, string.Empty, string.Empty),
-			new SourceAndTwoDestinationsConfiguration(string.Empty, string.Empty, string.Empty));
+			new SourceAndTwoDestinationsConfiguration(string.Empty, string.Empty, string.Empty),
+			R1ToR1Configuration.Empty);
+	}
+
+	internal static Configuration ForR1ToR1(CommonConfiguration common, R1ToR1Configuration r1ToR1)
+	{
+		return new Configuration(common,
+			new SourceAndDestinationConfiguration(string.Empty, string.Empty),
+			new SourceAndDestinationConfiguration(string.Empty, string.Empty),
+			new SourceAndDestinationConfiguration(string.Empty, string.Empty),
+			new SourceAndDestinationConfiguration(string.Empty, string.Empty),
+			new SourceAndDestinationConfiguration(string.Empty, string.Empty),
+			new SourceAndWorkspaceIdConfiguration(string.Empty, -1),
+			new TwoSourcesAndDestinationConfiguration(string.Empty, string.Empty, string.Empty),
+			new SourceAndTwoDestinationsConfiguration(string.Empty, string.Empty, string.Empty),
+			r1ToR1);
 	}
 
 	internal static Configuration ForUploadFile(CommonConfiguration common,
@@ -72,7 +91,8 @@ internal record Configuration(
 			new SourceAndDestinationConfiguration(string.Empty, string.Empty),
 			new SourceAndWorkspaceIdConfiguration(string.Empty, -1),
 			new TwoSourcesAndDestinationConfiguration(string.Empty, string.Empty, string.Empty),
-			new SourceAndTwoDestinationsConfiguration(string.Empty, string.Empty, string.Empty));
+			new SourceAndTwoDestinationsConfiguration(string.Empty, string.Empty, string.Empty),
+			R1ToR1Configuration.Empty);
 	}
 
 	internal static Configuration ForUploadItems(CommonConfiguration common,
@@ -86,7 +106,8 @@ internal record Configuration(
 			new SourceAndDestinationConfiguration(string.Empty, string.Empty),
 			new SourceAndWorkspaceIdConfiguration(string.Empty, -1),
 			new TwoSourcesAndDestinationConfiguration(string.Empty, string.Empty, string.Empty),
-			new SourceAndTwoDestinationsConfiguration(string.Empty, string.Empty, string.Empty));
+			new SourceAndTwoDestinationsConfiguration(string.Empty, string.Empty, string.Empty),
+			R1ToR1Configuration.Empty);
 	}
 
 	internal static Configuration ForDownloadDirectory(CommonConfiguration common,
@@ -100,7 +121,8 @@ internal record Configuration(
 			downloadDirectory,
 			new SourceAndWorkspaceIdConfiguration(string.Empty, -1),
 			new TwoSourcesAndDestinationConfiguration(string.Empty, string.Empty, string.Empty),
-			new SourceAndTwoDestinationsConfiguration(string.Empty, string.Empty, string.Empty));
+			new SourceAndTwoDestinationsConfiguration(string.Empty, string.Empty, string.Empty),
+			R1ToR1Configuration.Empty);
 	}
 
 	internal static Configuration ForDownloadFile(CommonConfiguration common,
@@ -114,7 +136,8 @@ internal record Configuration(
 			new SourceAndDestinationConfiguration(string.Empty, string.Empty),
 			new SourceAndWorkspaceIdConfiguration(string.Empty, -1),
 			new TwoSourcesAndDestinationConfiguration(string.Empty, string.Empty, string.Empty),
-			new SourceAndTwoDestinationsConfiguration(string.Empty, string.Empty, string.Empty));
+			new SourceAndTwoDestinationsConfiguration(string.Empty, string.Empty, string.Empty),
+			R1ToR1Configuration.Empty);
 	}
 
 	internal static Configuration ForUploadDirectoryByWorkspaceId(CommonConfiguration common,
@@ -128,7 +151,8 @@ internal record Configuration(
 			new SourceAndDestinationConfiguration(string.Empty, string.Empty),
 			uploadDirectory,
 			new TwoSourcesAndDestinationConfiguration(string.Empty, string.Empty, string.Empty),
-			new SourceAndTwoDestinationsConfiguration(string.Empty, string.Empty, string.Empty));
+			new SourceAndTwoDestinationsConfiguration(string.Empty, string.Empty, string.Empty),
+			R1ToR1Configuration.Empty);
 	}
 
 	internal static Configuration ForUploadDirectoryBasedOnExistingJob(CommonConfiguration common,
@@ -142,7 +166,8 @@ internal record Configuration(
 			new SourceAndDestinationConfiguration(string.Empty, string.Empty),
 			new SourceAndWorkspaceIdConfiguration(string.Empty, -1),
 			uploadDirectory,
-			new SourceAndTwoDestinationsConfiguration(string.Empty, string.Empty, string.Empty));
+			new SourceAndTwoDestinationsConfiguration(string.Empty, string.Empty, string.Empty),
+			R1ToR1Configuration.Empty);
 	}
 
 	internal static Configuration ForDownloadDirectoryBasedOnExistingJob(CommonConfiguration common,
@@ -156,6 +181,7 @@ internal record Configuration(
 			new SourceAndDestinationConfiguration(string.Empty, string.Empty),
 			new SourceAndWorkspaceIdConfiguration(string.Empty, -1),
 			new TwoSourcesAndDestinationConfiguration(string.Empty, string.Empty, string.Empty),
-			downloadDirectory);
+			downloadDirectory,
+			R1ToR1Configuration.Empty);
 	}
 }
