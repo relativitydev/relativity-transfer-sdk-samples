@@ -95,6 +95,9 @@ internal class AiRToAiREndToEnd : ISample
 		if (!validationResult.IsValid)
 			throw new InvalidOperationException($"Reference token is not valid: {validationResult.ErrorMessage}");
 
+		// In a real integration, compare CustomerName with the party you expect to receive the data before you continue.
+		_consoleLogger.Info($"Reference token is valid. Issued by: [green]{Markup.Escape(validationResult.CustomerName ?? "-")}[/]");
+
 		// ---------------------------------------------------------------------------------------------
 		// Step 4 - SENDER (source instance): create the transfer job and monitor it.
 		// The documented REST workflow has two calls here (POST jobs + polling GET jobs/{id}). The SDK handles both in a single call:
@@ -132,10 +135,11 @@ internal class AiRToAiREndToEnd : ISample
 		//   GET {source_instance_url}/transfer-service/api/v2/transfer/jobs/{jobId}/qc
 		//   https://platform.relativity.com/RelativityaiR/Content/Transfer_API/Relativity_Transfer_Service.htm#GETv2transferjobsjobIdqc
 		// ---------------------------------------------------------------------------------------------
+		// The result is printed first, so it is shown even if the revoke below fails.
+		_consoleLogger.PrintTransferResult(result);
+
 		if (result.State is TransferJobFailed or TransferJobCancelled)
 			// CancellationToken.None: revoke the token even when the method-level token has been cancelled.
 			await receiverTokenClient.RevokeAsync(referenceToken, CancellationToken.None).ConfigureAwait(false);
-
-		_consoleLogger.PrintTransferResult(result);
 	}
 }
