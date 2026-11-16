@@ -1,8 +1,10 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Relativity.Transfer.SDK.Interfaces;
 using Relativity.Transfer.SDK.Interfaces.Options;
 using Relativity.Transfer.SDK.Interfaces.Paths;
+using Relativity.Transfer.SDK.Interfaces.ProgressReporting;
 using Relativity.Transfer.SDK.Interfaces.ProgressReporting.JobStates;
 using Relativity.Transfer.SDK.Samples.Core.Attributes;
 using Relativity.Transfer.SDK.Samples.Core.Authentication;
@@ -88,38 +90,60 @@ internal class AiRToAiREndToEnd : ISample
 		// Step 3 - SENDER (source instance): validate the token to confirm the destination before sending any data.
 		// The result tells who issued the token (CustomerName), so the Sender can make sure the data goes to the expected party.
 		// ---------------------------------------------------------------------------------------------
-		var senderTokenClient = TransferClientBuilder.ReferenceTokenWorkflow
-			.WithAuthentication(sourceAuthenticationProvider)
-			.Build();
-		var validationResult = await senderTokenClient.ValidateAsync(referenceToken, token).ConfigureAwait(false);
-		if (!validationResult.IsValid)
-			throw new InvalidOperationException($"Reference token is not valid: {validationResult.ErrorMessage}");
-
-		// ---------------------------------------------------------------------------------------------
-		// Step 4 - SENDER (source instance): create the transfer job and monitor it.
-		// The documented REST workflow has two calls here (POST jobs + polling GET jobs/{id}). The SDK handles both in a single call:
-		// it creates the job and polls its status until it finishes, reporting progress through the progress handler.
-		// aiR-to-aiR transfer uses the same full path client as the other transfers
-		// (the SDK API still uses the former R1-to-R1 name: R1ToR1TransferAsync, R1ToR1TransferOptions).
-		// ---------------------------------------------------------------------------------------------
-		var transferClient = TransferClientBuilder.FullPathWorkflow
-			.WithAuthentication(sourceAuthenticationProvider)
-			.WithClientName(clientName)
-			.WithStagingExplorerContext()
-			.Build();
-
-		_consoleLogger.PrintCreatingTransfer(jobId, source, null,
-			$"\tTo: [orange4]{Markup.Escape(aiRToAiR.Destination)}[/] (encoded in the reference token)");
-
-		var options = new R1ToR1TransferOptions
+		// From here on the token exists. If the transfer does not complete, nobody but the Receiver revokes it
+		// (the automatic revoke runs only after a completed transfer), so every failure path below revokes it.
+		var transferStarted = false;
+		TransferJobResult result;
+		try
 		{
-			// Cancelling this token cancels the job on the server (the SDK calls the cancel endpoint and waits until
-			// the job is cancelled). The method-level 'token' only stops the SDK-side processing.
-			JobCancellationToken = CancellationToken.None
-		};
-		var result = await transferClient
-			.R1ToR1TransferAsync(jobId, referenceToken, source, options, _progressHandlerFactory.Create(), token)
-			.ConfigureAwait(false);
+			var senderTokenClient = TransferClientBuilder.ReferenceTokenWorkflow
+				.WithAuthentication(sourceAuthenticationProvider)
+				.Build();
+			var validationResult = await senderTokenClient.ValidateAsync(referenceToken, token).ConfigureAwait(false);
+			if (!validationResult.IsValid)
+				throw new InvalidOperationException($"Reference token is not valid: {validationResult.ErrorMessage}");
+
+			// ---------------------------------------------------------------------------------------------
+			// Step 4 - SENDER (source instance): create the transfer job and monitor it.
+			// The documented REST workflow has two calls here (POST jobs + polling GET jobs/{id}). The SDK handles both in a single call:
+			// it creates the job and polls its status until it finishes, reporting progress through the progress handler.
+			// aiR-to-aiR transfer uses the same full path client as the other transfers
+			// (the SDK API still uses the former R1-to-R1 name: R1ToR1TransferAsync, R1ToR1TransferOptions).
+			// ---------------------------------------------------------------------------------------------
+			var transferClient = TransferClientBuilder.FullPathWorkflow
+				.WithAuthentication(sourceAuthenticationProvider)
+				.WithClientName(clientName)
+				.WithStagingExplorerContext()
+				.Build();
+
+			_consoleLogger.PrintCreatingTransfer(jobId, source, null,
+				$"\tTo: [orange4]{Markup.Escape(aiRToAiR.Destination)}[/] (encoded in the reference token)");
+
+			var options = new R1ToR1TransferOptions
+			{
+				// Cancelling this token cancels the job on the server (the SDK calls the cancel endpoint and waits until
+				// the job is cancelled). The method-level 'token' only stops the SDK-side processing.
+				JobCancellationToken = CancellationToken.None
+			};
+			transferStarted = true;
+			result = await transferClient
+				.R1ToR1TransferAsync(jobId, referenceToken, source, options, _progressHandlerFactory.Create(), token)
+				.ConfigureAwait(false);
+		}
+		catch (OperationCanceledException) when (transferStarted && token.IsCancellationRequested)
+		{
+			// Cancelling the method-level token only stops monitoring - the job may still be running on the server
+			// and still needs the token. Do not revoke it here: cancel the job first, then revoke the token.
+			_consoleLogger.Info($"Stopped monitoring job {jobId}. The job may still be running on the server, so the reference token was not revoked. " +
+				"Cancel the job (DELETE v2/transfer/jobs/{jobId}) and then revoke the token.");
+			throw;
+		}
+		catch
+		{
+			// Validation failed, the job was rejected or the transfer threw - the token is still active.
+			await RevokeReferenceTokenAsync(receiverTokenClient, referenceToken).ConfigureAwait(false);
+			throw;
+		}
 
 		// ---------------------------------------------------------------------------------------------
 		// Step 5 (optional) - RECEIVER (destination instance): revoke the token. Only the Receiver can revoke it.
@@ -131,8 +155,23 @@ internal class AiRToAiREndToEnd : ISample
 		//   https://platform.relativity.com/RelativityaiR/Content/Transfer_API/Relativity_Transfer_Service.htm#GETv2transferjobsjobIdqc
 		// ---------------------------------------------------------------------------------------------
 		if (result.State is TransferJobFailed or TransferJobCancelled)
-			await receiverTokenClient.RevokeAsync(referenceToken, token).ConfigureAwait(false);
+			await RevokeReferenceTokenAsync(receiverTokenClient, referenceToken).ConfigureAwait(false);
 
 		_consoleLogger.PrintTransferResult(result);
+	}
+
+	private async Task RevokeReferenceTokenAsync(IReferenceTokenClient receiverTokenClient, string referenceToken)
+	{
+		try
+		{
+			// CancellationToken.None: the revoke has to run even when the sample's token is already cancelled.
+			await receiverTokenClient.RevokeAsync(referenceToken, CancellationToken.None).ConfigureAwait(false);
+			_consoleLogger.Info("Reference token revoked.");
+		}
+		catch (Exception ex)
+		{
+			// Never hide the original error or the transfer result because of a failed revoke.
+			_consoleLogger.Info($"Failed to revoke the reference token: {ex.Message}. The Receiver should revoke it manually.");
+		}
 	}
 }
