@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Relativity.Transfer.SDK.Samples.Core.Attributes;
 using Relativity.Transfer.SDK.Samples.Core.Authentication.Credentials;
 using Relativity.Transfer.SDK.Samples.Core.Configuration;
@@ -45,6 +45,7 @@ internal sealed class ConfigurationScreen : IConfigurationScreen
 		SampleAttribute sampleAttribute, CommonConfiguration common)
 	{
 		string source, destination;
+		var aiRToAiR = configuration.AiRToAiR;
 		switch (sampleAttribute.TransferType)
 		{
 			case TransferType.UploadDirectory:
@@ -143,8 +144,35 @@ internal sealed class ConfigurationScreen : IConfigurationScreen
 				return Configuration.Configuration.ForDownloadDirectoryBasedOnExistingJob(common,
 					new SourceAndTwoDestinationsConfiguration(source, firstDestination, secondDestination));
 
+			case TransferType.AiRToAiREndToEnd:
+				// The instance configured above is the source (Sender) instance; the destination (Receiver) instance is asked for here.
+				source = AnsiConsole.Ask("Source directory (on the source instance)",
+					GetDefaultAiRToAiRDirectory(common, aiRToAiR.Source));
+				var destinationInstanceUrl = AnsiConsole.Ask("Destination instance URL", aiRToAiR.DestinationInstanceUrl);
+				var destinationClientId = AnsiConsole.Ask("Destination client secret ID",
+					aiRToAiR.DestinationOAuthCredentials?.ClientId ?? string.Empty);
+				var destinationClientSecret = AnsiConsole.Ask("Destination client secret",
+					aiRToAiR.DestinationOAuthCredentials?.ClientSecret ?? string.Empty);
+				destination = AnsiConsole.Ask("Destination directory (on the destination instance, must already exist)",
+					aiRToAiR.Destination);
+
+				return Configuration.Configuration.ForAiRToAiR(common, aiRToAiR with
+				{
+					Source = source,
+					Destination = destination,
+					DestinationInstanceUrl = destinationInstanceUrl,
+					DestinationOAuthCredentials = new OAuthCredentials(destinationClientId, destinationClientSecret)
+				});
+
 			default: throw new ArgumentOutOfRangeException(nameof(sampleAttribute.TransferType));
 		}
+	}
+
+	private string GetDefaultAiRToAiRDirectory(CommonConfiguration common, string defaultValue)
+	{
+		return string.IsNullOrWhiteSpace(defaultValue)
+			? _pathExtension.GetDefaultRemoteDirectoryPathForDownloadAsString(common)
+			: defaultValue;
 	}
 
 	private string GetDefaultUploadDirectoryDestination(CommonConfiguration common, string defaultValue)

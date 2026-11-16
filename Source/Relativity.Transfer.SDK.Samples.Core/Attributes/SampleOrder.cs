@@ -1,4 +1,4 @@
-﻿namespace Relativity.Transfer.SDK.Samples.Core.Attributes;
+namespace Relativity.Transfer.SDK.Samples.Core.Attributes;
 
 internal enum SampleOrder
 {
@@ -8,6 +8,7 @@ internal enum SampleOrder
     UploadItems,
     UploadDirectory,
     CloudUpload,
+    AiRToAiREndToEnd,
     UploadDirectoryWithCustomizedRetryPolicy,
     UploadDirectoryWithExclusionPolicy,
     UploadDirectoryWithMaxHttpConnections,

@@ -16,6 +16,7 @@ This project showcases a straightforward integration scenario with `Relativity.T
 - Setup one of three predefined retry policies - No Retry, Linear, Exponential 
 - Assign an exclusion policy to filter out unwanted files
 - Limit the number of concurrent HTTP connections used by a transfer
+- Transfer a directory between two RelativityOne instances (aiR-to-aiR) and manage the reference tokens used to authorize it
 
 The library supports `.NETStandard 2.0`, which means it is cross-platform. You can run it on Windows, Mac or Linux!
 
@@ -36,6 +37,41 @@ Within each tenant or client domain storage area, the Staging Area consists of t
 - TenantVM
 
 More details can be found in the Staging Governance documentation [here](https://help.relativity.com/RelativityOne/Content/Relativity/Staging_Area.htm).
+
+## aiR-to-aiR transfers <a name = "air_to_air"></a>
+
+aiR-to-aiR transfers copy a directory from one RelativityOne instance (Sender, source) to another (Receiver, destination). The data is copied server-side, no customer machine is involved.
+The [AiRToAiREndToEnd](https://github.com/relativitydev/relativity-transfer-sdk-samples/blob/main/Source/Relativity.Transfer.SDK.Samples.Repository/FullPathWorkflow/AiRToAiREndToEnd.cs) sample plays both roles in a single process (so it needs credentials to both instances) and its comments mark which party runs each step.
+It follows the [documented workflow](https://platform.relativity.com/RelativityaiR/Content/Transfer_API/Relativity_aiR-to-Relativity_aiR_transfers.htm#workflow):
+
+1. The Receiver creates a reference token for an existing destination directory - `TransferClientBuilder.ReferenceTokenWorkflow` (`IReferenceTokenClient.CreateAsync`).
+2. The Receiver shares the token with the Sender through a secure out-of-band channel.
+3. The Sender validates the token - `IReferenceTokenClient.ValidateAsync`.
+4. The Sender starts the transfer and monitors it - `ITransferFullPathClient.R1ToR1TransferAsync` (creates the job and polls its status until it finishes).
+5. (Optional) If the transfer failed or was cancelled, the Receiver revokes the token - `IReferenceTokenClient.RevokeAsync`. After a completed transfer the token is revoked automatically once the post-transfer QC finishes - do not revoke it right after the transfer completes.
+   `R1ToR1TransferAsync` returns before the QC is done. The SDK does not expose the QC status yet (a dedicated client is coming soon) - for now check it via the REST API: [GET v2/transfer/jobs/{jobId}/qc](https://platform.relativity.com/RelativityaiR/Content/Transfer_API/Relativity_Transfer_Service.htm#GETv2transferjobsjobIdqc).
+
+```c#
+// Receiver (destination instance)
+var receiverTokenClient = TransferClientBuilder.ReferenceTokenWorkflow
+    .WithAuthentication(destinationAuthenticationProvider)
+    .Build();
+var referenceToken = await receiverTokenClient.CreateAsync(destinationPath, cancellationToken);
+
+// Sender (source instance)
+var transferClient = TransferClientBuilder.FullPathWorkflow
+    .WithAuthentication(sourceAuthenticationProvider)
+    .WithClientName(clientName)
+    .WithStagingExplorerContext()
+    .Build();
+var result = await transferClient.R1ToR1TransferAsync(jobId, referenceToken, sourceDirectory, new R1ToR1TransferOptions(), progressHandler, cancellationToken);
+```
+
+Notes:
+- Both instances must be of the same environment type (i.e. a transfer between prod-com and prod-gov is not possible). Cross-region transfers are supported.
+- Each party authenticates against its own instance with its own OAuth2 client.
+- The reference token is valid for 7 days - the transfer has to finish within that window.
+- `R1ToR1TransferOptions.JobCancellationToken` cancels the job on the server, while the method-level cancellation token only stops the SDK-side processing.
 
 ## Additional information
 
@@ -69,6 +105,7 @@ The repository contains 3 projects:
 | UploadDirectoryWithExclusionPolicy         | UploadDirectory                     | [UploadDirectoryWithExclusionPolicy](https://github.com/relativitydev/relativity-transfer-sdk-samples/blob/main/Source/Relativity.Transfer.SDK.Samples.Repository/FullPathWorkflow/UploadDirectoryWithExclusionPolicy.cs)                 |
 | UploadDirectoryWithMaxHttpConnections      | UploadDirectory                     | [UploadDirectoryWithMaxHttpConnections](https://github.com/relativitydev/relativity-transfer-sdk-samples/blob/main/Source/Relativity.Transfer.SDK.Samples.Repository/FullPathWorkflow/UploadDirectoryWithMaxHttpConnections.cs)           |
 | CloudUpload                                | CloudUpload                         | [CloudUpload](https://github.com/relativitydev/relativity-transfer-sdk-samples/blob/main/Source/Relativity.Transfer.SDK.Samples.Repository/FullPathWorkflow/CloudUpload.cs)                                                               |
+| AiRToAiREndToEnd                           | AiRToAiR                            | [AiRToAiREndToEnd](https://github.com/relativitydev/relativity-transfer-sdk-samples/blob/main/Source/Relativity.Transfer.SDK.Samples.Repository/FullPathWorkflow/AiRToAiREndToEnd.cs)                                                         |
 | UploadFile                                 | UploadFile                          | [UploadFile](https://github.com/relativitydev/relativity-transfer-sdk-samples/blob/main/Source/Relativity.Transfer.SDK.Samples.Repository/FullPathWorkflow/UploadFile.cs)                                                                 |
 | UploadItems                                | UploadFile                          | [UploadItems](https://github.com/relativitydev/relativity-transfer-sdk-samples/blob/main/Source/Relativity.Transfer.SDK.Samples.Repository/FullPathWorkflow/UploadItems.cs)                                                               |
 | UploadToFilesharePathBasedOnWorkspaceId    | UploadDirectoryByWorkspaceId        | [UploadToFilesharePathBasedOnWorkspaceId](https://github.com/relativitydev/relativity-transfer-sdk-samples/blob/main/Source/Relativity.Transfer.SDK.Samples.Repository/FullPathWorkflow/UploadToFileSharePathBasedOnWorkspaceId.cs)       |
