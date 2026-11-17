@@ -37,14 +37,15 @@ internal sealed class ConfigurationScreen : IConfigurationScreen
 
 		var newCommon = sampleAttribute.TransferType == TransferType.CloudUpload ? AskForCloudUploadParameters(configuration) : AskForCommonParameters(configuration);
 
-		return AskForTransferTypeSpecificParameters(configuration, sampleAttribute, newCommon);
+		return AskForTransferTypeSpecificParameters(configuration with { Common = newCommon }, sampleAttribute);
 	}
 
 	private Configuration.Configuration AskForTransferTypeSpecificParameters(
 		Configuration.Configuration configuration,
-		SampleAttribute sampleAttribute, CommonConfiguration common)
+		SampleAttribute sampleAttribute)
 	{
 		string source, destination;
+		var common = configuration.Common;
 		var aiRToAiR = configuration.AiRToAiR;
 		switch (sampleAttribute.TransferType)
 		{
@@ -55,7 +56,6 @@ internal sealed class ConfigurationScreen : IConfigurationScreen
 
 				return configuration with
 				{
-					Common = common,
 					UploadDirectory = new SourceAndDestinationConfiguration(source, destination)
 				};
 
@@ -65,7 +65,6 @@ internal sealed class ConfigurationScreen : IConfigurationScreen
 
 				return configuration with
 				{
-					Common = common,
 					CloudUpload = new SourceAndDestinationConfiguration(source, destination)
 				};
 
@@ -75,7 +74,6 @@ internal sealed class ConfigurationScreen : IConfigurationScreen
 
 				return configuration with
 				{
-					Common = common,
 					UploadFile = new SourceAndDestinationConfiguration(source, destination)
 				};
 
@@ -84,20 +82,17 @@ internal sealed class ConfigurationScreen : IConfigurationScreen
 				destination = AnsiConsole.Ask("Destination root directory",
 					GetDefaultUploadDirectoryDestination(common, configuration.UploadDirectory.Destination));
 
-				// The UploadItems samples read their load file and destination from the UploadFile section.
 				return configuration with
 				{
-					Common = common,
 					UploadFile = new SourceAndDestinationConfiguration(source, destination)
 				};
 
 			case TransferType.DownloadDirectory:
-				source = AnsiConsole.Ask("Source directory", GetDefaultDownloadDirectorySource(configuration, common));
+				source = AnsiConsole.Ask("Source directory", GetDefaultDownloadDirectorySource(configuration));
 				destination = AnsiConsole.Ask("Destination directory", configuration.DownloadDirectory.Destination);
 
 				return configuration with
 				{
-					Common = common,
 					DownloadDirectory = new SourceAndDestinationConfiguration(source, destination)
 				};
 
@@ -107,7 +102,6 @@ internal sealed class ConfigurationScreen : IConfigurationScreen
 
 				return configuration with
 				{
-					Common = common,
 					DownloadFile = new SourceAndDestinationConfiguration(source, destination)
 				};
 
@@ -128,7 +122,6 @@ internal sealed class ConfigurationScreen : IConfigurationScreen
 
 				return configuration with
 				{
-					Common = common,
 					UploadDirectoryByWorkspaceId = new SourceAndWorkspaceIdConfiguration(source, workspaceId)
 				};
 
@@ -155,7 +148,6 @@ internal sealed class ConfigurationScreen : IConfigurationScreen
 
 				return configuration with
 				{
-					Common = common,
 					UploadDirectoryBasedOnExistingJob =
 						new TwoSourcesAndDestinationConfiguration(firstSource, secondSource, destination)
 				};
@@ -170,7 +162,6 @@ internal sealed class ConfigurationScreen : IConfigurationScreen
 
 				return configuration with
 				{
-					Common = common,
 					DownloadDirectoryBasedOnExistingJob =
 						new SourceAndTwoDestinationsConfiguration(source, firstDestination, secondDestination)
 				};
@@ -189,14 +180,8 @@ internal sealed class ConfigurationScreen : IConfigurationScreen
 
 				return configuration with
 				{
-					Common = common,
-					AiRToAiR = aiRToAiR with
-					{
-						Source = source,
-						Destination = destination,
-						DestinationInstanceUrl = destinationInstanceUrl,
-						DestinationOAuthCredentials = new OAuthCredentials(destinationClientId, destinationClientSecret)
-					}
+					AiRToAiR = new AiRToAiRConfiguration(source, destination, destinationInstanceUrl,
+						new OAuthCredentials(destinationClientId, destinationClientSecret))
 				};
 
 			default: throw new ArgumentOutOfRangeException(nameof(sampleAttribute.TransferType));
@@ -217,13 +202,12 @@ internal sealed class ConfigurationScreen : IConfigurationScreen
 			: defaultValue;
 	}
 
-	private string GetDefaultDownloadDirectorySource(Configuration.Configuration configuration,
-		CommonConfiguration common)
+	private string GetDefaultDownloadDirectorySource(Configuration.Configuration configuration)
 	{
 		var source = configuration.DownloadDirectory.Source;
 
 		return string.IsNullOrWhiteSpace(source)
-			? _pathExtension.GetDefaultRemoteDirectoryPathForDownloadAsString(common)
+			? _pathExtension.GetDefaultRemoteDirectoryPathForDownloadAsString(configuration.Common)
 			: source;
 	}
 

@@ -11,8 +11,4 @@ internal sealed record AiRToAiRConfiguration(
 	string Source,
 	string Destination,
 	string DestinationInstanceUrl,
-	OAuthCredentials DestinationOAuthCredentials)
-{
-	internal static readonly AiRToAiRConfiguration Empty =
-		new(string.Empty, string.Empty, string.Empty, new OAuthCredentials(string.Empty, string.Empty));
-}
+	OAuthCredentials DestinationOAuthCredentials);
