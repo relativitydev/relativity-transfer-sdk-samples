@@ -36,7 +36,9 @@ internal static class SamplesAttributesProvider
 		if (string.IsNullOrWhiteSpace(directoryName))
 			throw new InvalidOperationException("Cannot get directory path of the Core assembly.");
 
+		// Load by name, not LoadFrom: on .NET Framework LoadFrom with a differently spelled path (e.g. an 8.3 short path)
+		// loads a second copy of Core, and the samples' [Sample] then no longer matches typeof(SampleAttribute).
 		foreach (var assemblyPath in Directory.GetFiles(directoryName, SamplesAssemblyPrefix + "*.dll"))
-			Assembly.LoadFrom(assemblyPath);
+			Assembly.Load(AssemblyName.GetAssemblyName(assemblyPath));
 	}
 }
