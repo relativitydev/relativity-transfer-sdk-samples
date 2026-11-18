@@ -7,20 +7,28 @@ namespace Relativity.Transfer.SDK.Samples.Core.Attributes;
 
 internal static class SamplesAttributesProvider
 {
+	// Only the samples assemblies carry [Sample]. Scanning third-party assemblies (including the SDK) would make
+	// the CLI fail to start whenever one of them has a type that cannot be loaded.
+	private const string SamplesAssemblyPrefix = "Relativity.Transfer.SDK.Samples.";
+
 	public static SampleAttribute[] GetSamplesAttributes()
 	{
 		EnsureAllSamplesAssembliesAreLoaded();
 
 		return AppDomain.CurrentDomain
 			.GetAssemblies()
+			.Where(IsSamplesAssembly)
 			.SelectMany(assembly => assembly.GetTypes())
-			.Where(type => type.GetCustomAttribute(typeof(SampleAttribute), false) != null)
-			.Select(type => (SampleAttribute)type.GetCustomAttribute(typeof(SampleAttribute), false))
+			.Select(type => type.GetCustomAttribute<SampleAttribute>(false))
+			.Where(attr => attr != null)
 			.Concat(new[] { SampleAttribute.ExitOptionAttribute })
 			.Distinct()
 			.OrderBy(attr => attr.Order)
 			.ToArray();
 	}
+
+	private static bool IsSamplesAssembly(Assembly assembly) =>
+		assembly.GetName().Name?.StartsWith(SamplesAssemblyPrefix, StringComparison.Ordinal) == true;
 
 	private static void EnsureAllSamplesAssembliesAreLoaded()
 	{
@@ -28,14 +36,9 @@ internal static class SamplesAttributesProvider
 		if (string.IsNullOrWhiteSpace(directoryName))
 			throw new InvalidOperationException("Cannot get directory path of the Core assembly.");
 
-		foreach (var assemblyPath in Directory.GetFiles(directoryName, "*.dll"))
-			try
-			{
-				Assembly.LoadFrom(assemblyPath);
-			}
-			catch
-			{
-				//ignore
-			}
+		// Load by name, not LoadFrom: on .NET Framework LoadFrom with a differently spelled path (e.g. an 8.3 short path)
+		// loads a second copy of Core, and the samples' [Sample] then no longer matches typeof(SampleAttribute).
+		foreach (var assemblyPath in Directory.GetFiles(directoryName, SamplesAssemblyPrefix + "*.dll"))
+			Assembly.Load(AssemblyName.GetAssemblyName(assemblyPath));
 	}
 }
