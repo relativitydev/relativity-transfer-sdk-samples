@@ -37,14 +37,15 @@ internal sealed class ConfigurationScreen : IConfigurationScreen
 
 		var newCommon = sampleAttribute.TransferType == TransferType.CloudUpload ? AskForCloudUploadParameters(configuration) : AskForCommonParameters(configuration);
 
-		return AskForTransferTypeSpecificParameters(configuration, sampleAttribute, newCommon);
+		return AskForTransferTypeSpecificParameters(configuration with { Common = newCommon }, sampleAttribute);
 	}
 
 	private Configuration.Configuration AskForTransferTypeSpecificParameters(
 		Configuration.Configuration configuration,
-		SampleAttribute sampleAttribute, CommonConfiguration common)
+		SampleAttribute sampleAttribute)
 	{
 		string source, destination;
+		var common = configuration.Common;
 		var aiRToAiR = configuration.AiRToAiR;
 		switch (sampleAttribute.TransferType)
 		{
@@ -53,43 +54,56 @@ internal sealed class ConfigurationScreen : IConfigurationScreen
 				destination = AnsiConsole.Ask("Destination directory",
 					GetDefaultUploadDirectoryDestination(common, configuration.UploadDirectory.Destination));
 
-				return Configuration.Configuration.ForUploadDirectory(common,
-					new SourceAndDestinationConfiguration(source, destination));
-			
+				return configuration with
+				{
+					UploadDirectory = new SourceAndDestinationConfiguration(source, destination)
+				};
+
 			case TransferType.CloudUpload:
 				source = AnsiConsole.Ask("Source SasURL", configuration.CloudUpload.Source);
 				destination = AnsiConsole.Ask("Destination directory", GetDefaultUploadDirectoryDestination(common, configuration.CloudUpload.Destination));
-				
-				return Configuration.Configuration.ForCloudUpload(common, new SourceAndDestinationConfiguration(source, destination));
+
+				return configuration with
+				{
+					CloudUpload = new SourceAndDestinationConfiguration(source, destination)
+				};
 
 			case TransferType.UploadFile:
-				source = AnsiConsole.Ask("Source file", configuration.UploadFile.Source); 
+				source = AnsiConsole.Ask("Source file", configuration.UploadFile.Source);
 				destination = AnsiConsole.Ask("Destination directory", configuration.UploadFile.Destination);
 
-				return Configuration.Configuration.ForUploadFile(common,
-					new SourceAndDestinationConfiguration(source, destination));
-			
+				return configuration with
+				{
+					UploadFile = new SourceAndDestinationConfiguration(source, destination)
+				};
+
 			case TransferType.UploadItems:
 				source = AnsiConsole.Ask("List of items source file (load file)", configuration.UploadFile.Source);
 				destination = AnsiConsole.Ask("Destination root directory",
 					GetDefaultUploadDirectoryDestination(common, configuration.UploadDirectory.Destination));
-				
-				return Configuration.Configuration.ForUploadItems(common,
-					new SourceAndDestinationConfiguration(source, destination));
+
+				return configuration with
+				{
+					UploadFile = new SourceAndDestinationConfiguration(source, destination)
+				};
 
 			case TransferType.DownloadDirectory:
-				source = AnsiConsole.Ask("Source directory", GetDefaultDownloadDirectorySource(configuration, common));
+				source = AnsiConsole.Ask("Source directory", GetDefaultDownloadDirectorySource(configuration));
 				destination = AnsiConsole.Ask("Destination directory", configuration.DownloadDirectory.Destination);
 
-				return Configuration.Configuration.ForDownloadDirectory(common,
-					new SourceAndDestinationConfiguration(source, destination));
+				return configuration with
+				{
+					DownloadDirectory = new SourceAndDestinationConfiguration(source, destination)
+				};
 
 			case TransferType.DownloadFile:
 				source = AnsiConsole.Ask("Source file", configuration.DownloadFile.Source);
 				destination = AnsiConsole.Ask("Destination directory", configuration.DownloadFile.Destination);
 
-				return Configuration.Configuration.ForDownloadFile(common,
-					new SourceAndDestinationConfiguration(source, destination));
+				return configuration with
+				{
+					DownloadFile = new SourceAndDestinationConfiguration(source, destination)
+				};
 
 			case TransferType.UploadDirectoryByWorkspaceId:
 				source = AnsiConsole.Ask("Source directory", configuration.UploadDirectoryByWorkspaceId.Source);
@@ -106,8 +120,10 @@ internal sealed class ConfigurationScreen : IConfigurationScreen
 							};
 						}));
 
-				return Configuration.Configuration.ForUploadDirectoryByWorkspaceId(common,
-					new SourceAndWorkspaceIdConfiguration(source, workspaceId));
+				return configuration with
+				{
+					UploadDirectoryByWorkspaceId = new SourceAndWorkspaceIdConfiguration(source, workspaceId)
+				};
 
 			case TransferType.UploadDirectoryBasedOnExistingJob:
 				// Because of the issue in SpectreConsole, validation needs to be made manually: https://github.com/spectreconsole/spectre.console/issues/1343
@@ -130,8 +146,11 @@ internal sealed class ConfigurationScreen : IConfigurationScreen
 					GetDefaultUploadDirectoryDestination(common,
 						configuration.UploadDirectoryBasedOnExistingJob.Destination));
 
-				return Configuration.Configuration.ForUploadDirectoryBasedOnExistingJob(common,
-					new TwoSourcesAndDestinationConfiguration(firstSource, secondSource, destination));
+				return configuration with
+				{
+					UploadDirectoryBasedOnExistingJob =
+						new TwoSourcesAndDestinationConfiguration(firstSource, secondSource, destination)
+				};
 
 			case TransferType.DownloadDirectoryBasedOnExistingJob:
 				source = AnsiConsole.Ask("Source directory", configuration.DownloadDirectoryBasedOnExistingJob.Source);
@@ -141,8 +160,11 @@ internal sealed class ConfigurationScreen : IConfigurationScreen
 				var secondDestination = AnsiConsole.Ask("Second destination directory [[download]]",
 					configuration.DownloadDirectoryBasedOnExistingJob.SecondDestination);
 
-				return Configuration.Configuration.ForDownloadDirectoryBasedOnExistingJob(common,
-					new SourceAndTwoDestinationsConfiguration(source, firstDestination, secondDestination));
+				return configuration with
+				{
+					DownloadDirectoryBasedOnExistingJob =
+						new SourceAndTwoDestinationsConfiguration(source, firstDestination, secondDestination)
+				};
 
 			case TransferType.AiRToAiREndToEnd:
 				// The instance configured above is the source (Sender) instance; the destination (Receiver) instance is asked for here.
@@ -156,13 +178,11 @@ internal sealed class ConfigurationScreen : IConfigurationScreen
 				destination = AnsiConsole.Ask("Destination directory (on the destination instance, must already exist)",
 					aiRToAiR.Destination);
 
-				return Configuration.Configuration.ForAiRToAiR(common, aiRToAiR with
+				return configuration with
 				{
-					Source = source,
-					Destination = destination,
-					DestinationInstanceUrl = destinationInstanceUrl,
-					DestinationOAuthCredentials = new OAuthCredentials(destinationClientId, destinationClientSecret)
-				});
+					AiRToAiR = new AiRToAiRConfiguration(source, destination, destinationInstanceUrl,
+						new OAuthCredentials(destinationClientId, destinationClientSecret))
+				};
 
 			default: throw new ArgumentOutOfRangeException(nameof(sampleAttribute.TransferType));
 		}
@@ -182,13 +202,12 @@ internal sealed class ConfigurationScreen : IConfigurationScreen
 			: defaultValue;
 	}
 
-	private string GetDefaultDownloadDirectorySource(Configuration.Configuration configuration,
-		CommonConfiguration common)
+	private string GetDefaultDownloadDirectorySource(Configuration.Configuration configuration)
 	{
 		var source = configuration.DownloadDirectory.Source;
 
 		return string.IsNullOrWhiteSpace(source)
-			? _pathExtension.GetDefaultRemoteDirectoryPathForDownloadAsString(common)
+			? _pathExtension.GetDefaultRemoteDirectoryPathForDownloadAsString(configuration.Common)
 			: source;
 	}
 
